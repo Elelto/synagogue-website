@@ -1,26 +1,36 @@
-import Image from 'next/image'
-import { HeroSection } from '@/components/home/HeroSection'
-import { UpcomingEvents } from '@/components/home/UpcomingEvents'
-import { PrayerTimes } from '@/components/home/PrayerTimes'
+import Link from 'next/link';
+import { HeroSection } from '../components/home/HeroSection'
+import { PrayerTimes } from '../components/home/PrayerTimes'
+import { Announcements } from '../components/home/Announcements'
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between">
+    <div className="flex flex-col min-h-screen">
       <HeroSection />
       
-      <section className="container mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-2 gap-8">
-        <UpcomingEvents />
-        <PrayerTimes />
-      </section>
-      
-      <section className="w-full bg-primary-50 py-16">
+      {/* Gallery Button Section */}
+      <section className="py-12 bg-[#FFFAF0]">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8 font-hebrew">ברוכים הבאים לבית הכנסת שלנו</h2>
-          <p className="text-center text-lg max-w-2xl mx-auto">
-            בית הכנסת שלנו הוא מקום של תפילה, לימוד וקהילה. אנו מזמינים אתכם להצטרף אלינו לתפילות ולאירועים.
-          </p>
+          <div className="text-center">
+            <Link 
+              href="/gallery" 
+              className="inline-block px-8 py-4 text-xl font-bold text-white bg-[#8B4513] hover:bg-[#B8860B] rounded-lg shadow-lg transition-colors duration-300"
+            >
+              לצפייה בגלריית התמונות
+            </Link>
+          </div>
         </div>
       </section>
-    </main>
+
+      {/* Prayer Times and Announcements Section */}
+      <section className="py-12 bg-[#FFFAF0]">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <PrayerTimes />
+            <Announcements />
+          </div>
+        </div>
+      </section>
+    </div>
   )
 }

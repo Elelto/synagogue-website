@@ -1,54 +1,59 @@
-import { useQuery } from 'react-query'
-import axios from 'axios'
-import { format } from 'date-fns'
-import { he } from 'date-fns/locale'
+import React from 'react';
 
 interface Event {
-  id: number
-  title: string
-  description: string
-  date: string
-  time: string
-  location: string
+  id: number;
+  title: string;
+  date: string;
+  time: string;
+  description: string;
 }
 
-export function UpcomingEvents() {
-  const { data: events, isLoading } = useQuery<Event[]>(
-    'upcomingEvents',
-    async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/events`)
-      return response.data
+export const UpcomingEvents: React.FC = () => {
+  const events: Event[] = [
+    {
+      id: 1,
+      title: "שיעור תורה שבועי",
+      date: "יום שני",
+      time: "20:00",
+      description: "שיעור בפרשת השבוע עם הרב"
+    },
+    {
+      id: 2,
+      title: "תפילת שחרית",
+      date: "כל יום",
+      time: "06:30",
+      description: "תפילת שחרית יומית"
+    },
+    {
+      id: 3,
+      title: "סעודה שלישית",
+      date: "שבת",
+      time: "שעה לפני השקיעה",
+      description: "סעודה שלישית וזמירות שבת"
     }
-  )
+  ];
 
-  if (isLoading) {
-    return (
-      <div className="animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-24 bg-gray-200 rounded"></div>
+  return (
+    <section className="py-16">
+      <div className="container mx-auto px-4">
+        <h2 className="mb-8 text-center text-3xl font-bold">אירועים קרובים</h2>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {events.map((event) => (
+            <div
+              key={event.id}
+              className="rounded-lg border border-gray-200 p-6 shadow-md transition hover:shadow-lg"
+            >
+              <div className="mb-4 text-blue-600">
+                <span className="text-lg font-semibold">{event.date}</span>
+                <span className="mx-2">|</span>
+                <span>{event.time}</span>
+              </div>
+              <h3 className="mb-2 text-xl font-bold">{event.title}</h3>
+              <p className="text-gray-600">{event.description}</p>
+            </div>
           ))}
         </div>
       </div>
-    )
-  }
-
-  return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4 font-hebrew">אירועים קרובים</h2>
-      <div className="space-y-6">
-        {events?.map((event) => (
-          <div key={event.id} className="border-b border-gray-200 pb-4 last:border-0">
-            <h3 className="text-lg font-semibold mb-2 font-hebrew">{event.title}</h3>
-            <p className="text-gray-600 mb-2">{event.description}</p>
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>{format(new Date(event.date), 'EEEE, d בMMMM', { locale: he })}</span>
-              <span>{event.time}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
+    </section>
+  );
+};
