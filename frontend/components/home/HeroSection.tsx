@@ -25,16 +25,17 @@ export function HeroSection() {
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 py-16 flex flex-col items-center justify-center h-full">
         {/* Logo Container */}
-        <div className="relative w-64 h-64 mb-8">
-          <div className="absolute inset-0 bg-white/50 rounded-full blur-xl transform -translate-y-4"></div>
-          <div className="relative w-64 h-64">
+        <div className="relative w-72 h-72 md:w-96 md:h-96 mb-8 group">
+          <div className="absolute inset-0 bg-white/60 rounded-full blur-2xl transform -translate-y-4 group-hover:blur-3xl transition-all duration-500"></div>
+          <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-500">
             <Image
               src="/images/logo-removebg-preview.png"
               alt="בית הכנסת חזון יוסף"
               fill
               style={{ objectFit: 'contain' }}
-              className="drop-shadow-2xl"
+              className="drop-shadow-2xl transform group-hover:brightness-110 transition-all duration-500"
               priority
+              onLoad={() => setIsImageLoaded(true)}
             />
           </div>
         </div>

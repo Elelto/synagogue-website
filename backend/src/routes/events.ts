@@ -1,17 +1,39 @@
 import express from 'express';
+import { PrismaClient } from '@prisma/client';
 
 const router = express.Router();
+const prisma = new PrismaClient();
 
-router.get('/', (req, res) => {
-  res.json([
-    {
-      id: 1,
-      title: 'שיעור תורה שבועי',
-      description: 'שיעור בפרשת השבוע עם הרב',
-      date: '2025-02-18T20:00:00.000Z',
-      type: 'weekly'
-    }
-  ]);
+router.get('/', async (req, res) => {
+  try {
+    const events = await prisma.event.findMany({
+      orderBy: {
+        date: 'asc'
+      }
+    });
+    res.json(events);
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    res.status(500).json({ error: 'Error fetching events' });
+  }
+});
+
+router.post('/', async (req, res) => {
+  try {
+    const { title, description, date, type } = req.body;
+    const event = await prisma.event.create({
+      data: {
+        title,
+        description,
+        date: new Date(date),
+        type
+      }
+    });
+    res.status(201).json(event);
+  } catch (error) {
+    console.error('Error creating event:', error);
+    res.status(500).json({ error: 'Error creating event' });
+  }
 });
 
 export { router as eventsRouter };

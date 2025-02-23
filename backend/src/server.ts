@@ -7,6 +7,7 @@ import { prayerTimesRouter } from './routes/prayerTimes'
 import { announcementsRouter } from './routes/announcements'
 import { contactRouter } from './routes/contact'
 import { hebrewCalendarRouter } from './routes/hebrewCalendar'
+import { memorialDaysRouter } from './routes/memorialDays'
 
 dotenv.config()
 
@@ -28,6 +29,7 @@ app.use('/api/prayer-times', prayerTimesRouter)
 app.use('/api/announcements', announcementsRouter)
 app.use('/api/contact', contactRouter)
 app.use('/api/hebrew-calendar', hebrewCalendarRouter)
+app.use('/api/memorial-days', memorialDaysRouter)
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

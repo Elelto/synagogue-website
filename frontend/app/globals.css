@@ -16,11 +16,13 @@
   html {
     direction: rtl;
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
   
   body {
     @apply bg-[#FFFAF0] text-[#1C1C1C];
     font-family: 'Frank Ruhl Libre', serif;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {

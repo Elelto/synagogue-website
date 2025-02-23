@@ -6,6 +6,7 @@ import { Navbar } from '../components/shared/Navbar'
 import Footer from '../components/Footer'
 import { metadata } from './metadata'
 import React from 'react';
+import PageTransition from '@/components/PageTransition'
 
 const frankRuhlLibre = Frank_Ruhl_Libre({ 
   subsets: ['hebrew'],
@@ -22,7 +23,9 @@ export default function RootLayout({
       <body suppressHydrationWarning={true}>
         <Navbar />
         <main className="pt-16 pb-20">
-          {children}
+          <PageTransition>
+            {children}
+          </PageTransition>
         </main>
         <Footer />
       </body>
