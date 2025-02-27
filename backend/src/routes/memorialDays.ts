@@ -48,7 +48,12 @@ router.post('/', async (req, res) => {
 
     const memorialDay = await prisma.memorialDay.create({
       data: {
-        ...validatedData,
+        hebrewDate: validatedData.hebrewDate,
+        gregorianDate: validatedData.gregorianDate,
+        purchasedBy: validatedData.purchasedBy,
+        dedicatedTo: validatedData.dedicatedTo,
+        message: validatedData.message,
+        paymentId: validatedData.paymentId,
         paymentStatus: 'completed'
       }
     });

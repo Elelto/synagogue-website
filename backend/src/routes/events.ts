@@ -20,13 +20,14 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { title, description, date, type } = req.body;
+    const { title, description, date, location, time } = req.body;
     const event = await prisma.event.create({
       data: {
         title,
         description,
         date: new Date(date),
-        type
+        location,
+        time
       }
     });
     res.status(201).json(event);
