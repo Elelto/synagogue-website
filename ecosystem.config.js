@@ -2,25 +2,23 @@ module.exports = {
   apps: [
     {
       name: 'synagogue-backend',
-      script: 'node',
-      args: './dist/server.js',
+      script: './dist/server.js',
       cwd: './backend',
-      watch: ['dist'],
-      ignore_watch: ['node_modules', 'cache'],
+      watch: false,
       env: {
         NODE_ENV: 'production',
-        PORT: 3001
+        PORT: 3000
       }
     },
     {
       name: 'synagogue-frontend',
-      script: 'node',
-      args: './node_modules/next/dist/bin/next start -p 3000',
+      script: './node_modules/.bin/next',
+      args: 'start -p 3001',
       cwd: './frontend',
-      watch: ['.next'],
-      ignore_watch: ['node_modules', '.next/cache', '**/cache/*'],
+      watch: false,
       env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        PORT: 3001
       }
     }
   ]
