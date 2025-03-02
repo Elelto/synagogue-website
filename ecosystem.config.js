@@ -13,7 +13,7 @@ module.exports = {
     {
       name: 'synagogue-frontend',
       script: './node_modules/.bin/next',
-      args: 'start -p 3000',
+      args: 'start -p 3000 --hostname 0.0.0.0',
       cwd: './frontend',
       watch: false,
       env: {
