@@ -55,7 +55,9 @@ const images: GalleryImage[] = [
   }
 ];
 
-const categories = [...new Set(images.map(img => img.category))];
+const categories = images
+  .map(img => img.category)
+  .filter((category, index, array) => array.indexOf(category) === index);
 
 export function Gallery() {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
