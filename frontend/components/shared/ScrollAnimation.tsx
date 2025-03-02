@@ -21,10 +21,10 @@ export function ScrollAnimation({
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   const directions = {
-    up: { y: 100, opacity: 0 },
-    down: { y: -100, opacity: 0 },
-    left: { x: 100, opacity: 0 },
-    right: { x: -100, opacity: 0 }
+    up: { y: 100, x: 0, opacity: 0 },
+    down: { y: -100, x: 0, opacity: 0 },
+    left: { x: 100, y: 0, opacity: 0 },
+    right: { x: -100, y: 0, opacity: 0 }
   };
 
   return (

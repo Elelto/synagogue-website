@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
-import { HebrewCalendar as HebCal, HDate, Month } from '@hebcal/core';
+import { HebrewCalendar as HebCal, HDate, months } from '@hebcal/core';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import { loadStripe } from '@stripe/stripe-js';
 
@@ -132,12 +132,14 @@ const DayDetails: React.FC<{
               <PayPalButtons
                 createOrder={(data, actions) => {
                   return actions.order.create({
+                    intent: "CAPTURE",
                     purchase_units: [{
                       amount: {
-                        value: '18.00'
-                      }
-                    }]
-                  });
+                        value: '18.00',
+                        currency_code: 'USD'
+                      } as const
+                    }] as const
+                  } as const);
                 }}
                 onApprove={async (data, actions) => {
                   await onPurchase();
@@ -158,26 +160,9 @@ const DayDetails: React.FC<{
   );
 };
 
-const HEBREW_MONTHS = {
-  1: 'ניסן',
-  2: 'אייר',
-  3: 'סיון',
-  4: 'תמוז',
-  5: 'אב',
-  6: 'אלול',
-  7: 'תשרי',
-  8: 'חשון',
-  9: 'כסלו',
-  10: 'טבת',
-  11: 'שבט',
-  12: 'אדר',
-  13: 'אדר ב׳'
-};
-
 const getHebrewDate = (date: Date) => {
-  const hDate = new HDate(date);
-  const month = HEBREW_MONTHS[hDate.getMonth()];
-  return hDate.toString('h');  // This will return the full Hebrew date in Hebrew characters
+  const hebrewDate = new HDate(date);
+  return hebrewDate.toString();
 };
 
 const LargeCandle: React.FC = () => {
@@ -232,7 +217,7 @@ export const MemorialCalendar: React.FC = () => {
       const hDate = new HDate(date);
       days.push({
         date: new Date(date),
-        hebrewDate: hDate.renderGematriya(),
+        hebrewDate: getHebrewDate(date),
         isPurchased: purchasedDays.some(pd => 
           format(new Date(pd.gregorianDate), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
         )
