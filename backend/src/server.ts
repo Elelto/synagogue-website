@@ -9,7 +9,10 @@ import { contactRouter } from './routes/contact'
 import { hebrewCalendarRouter } from './routes/hebrewCalendar'
 import { memorialDaysRouter } from './routes/memorialDays'
 
+// Load .env after process.env to give priority to PM2 environment variables
+const existingEnv = { ...process.env }
 dotenv.config()
+Object.assign(process.env, { ...existingEnv, ...process.env })
 
 const app = express()
 const prisma = new PrismaClient()
