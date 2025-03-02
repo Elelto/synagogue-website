@@ -14,13 +14,14 @@ module.exports = {
     },
     {
       name: 'synagogue-frontend',
-      script: 'node',
-      args: './node_modules/next/dist/bin/next start -p 3000',
+      script: 'npm',
+      args: 'start',
       cwd: './frontend',
       watch: ['.next'],
       ignore_watch: ['node_modules', '.next/cache', '**/cache/*'],
       env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        PORT: 3000
       }
     }
   ]
