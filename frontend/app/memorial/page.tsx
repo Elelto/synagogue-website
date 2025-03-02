@@ -7,7 +7,7 @@ import { ScrollAnimation } from '@/components/shared/ScrollAnimation';
 export default function MemorialPage() {
   return (
     <PayPalScriptProvider options={{ 
-      "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '',
+      clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '',
       currency: "ILS",
       intent: "capture"
     }}>
