@@ -40,3 +40,6 @@ prisma/*.db
 
 # Docker
 docker-volumes/
+
+# Nginx
+nginx.conf
