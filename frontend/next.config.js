@@ -20,6 +20,15 @@ const nextConfig = {
       },
     ],
   },
+  // Enable rewriting for sitemap.xml
+  rewrites: async () => {
+    return [
+      {
+        source: '/sitemap.xml',
+        destination: '/api/sitemap',
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig
