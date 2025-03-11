@@ -3,6 +3,7 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@prismicio/client'],
   },
+  output: 'standalone',
   webpack: (config) => {
     config.watchOptions = {
       poll: 1000,

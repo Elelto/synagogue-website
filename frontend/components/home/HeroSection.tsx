@@ -46,7 +46,7 @@ export function HeroSection() {
 
         {/* Subtitle */}
         <h2 className="text-xl md:text-2xl text-[#B8860B] mb-6 text-center max-w-2xl hebrew-text">
-          לעילוי נשמת מרן דשבה"ג רבנו עובדיה יוסף זצוקללה"ה
+          לעילוי נשמת מרן רשכבה"ג רבנו עובדיה יוסף זצוקללה"ה
         </h2>
 
         {/* Description */}
