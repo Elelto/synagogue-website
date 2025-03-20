@@ -1,80 +1,77 @@
-import express from 'express'
-import cors from 'cors'
-import dotenv from 'dotenv'
-import { PrismaClient } from '@prisma/client'
-import { eventsRouter } from './routes/events'
-import { prayerTimesRouter } from './routes/prayerTimes'
-import { announcementsRouter } from './routes/announcements'
-import { contactRouter } from './routes/contact'
-import { hebrewCalendarRouter } from './routes/hebrewCalendar'
-import { memorialDaysRouter } from './routes/memorialDays'
-import { authRouter } from './routes/auth'
-import imagesRouter from './routes/admin/images'
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import dotenv from 'dotenv';
+import { PrismaClient } from '@prisma/client';
+import { eventsRouter } from './routes/events';
+import { prayerTimesRouter } from './routes/prayerTimes';
+import { announcementsRouter } from './routes/announcements';
+import { contactRouter } from './routes/contact';
+import { hebrewCalendarRouter } from './routes/hebrewCalendar';
+import { memorialDaysRouter } from './routes/memorialDays';
+import { authRouter } from './routes/auth';
+import { categoriesRouter } from './routes/admin/categories';
+import imagesRouter from './routes/admin/images';
+import publicImagesRouter from './routes/images';
+import zmanimRouter from './routes/zmanim';
 
-// Load .env after process.env to give priority to PM2 environment variables
-const existingEnv = { ...process.env }
-dotenv.config()
-Object.assign(process.env, { ...existingEnv, ...process.env })
+// Load environment variables
+dotenv.config();
 
-// Validate required environment variables
-const requiredEnvVars = ['NEXTAUTH_SECRET', 'PORT', 'NODE_ENV'];
-for (const envVar of requiredEnvVars) {
-  if (!process.env[envVar]) {
-    throw new Error(`${envVar} environment variable is required`);
-  }
-}
-
-const app = express()
-const prisma = new PrismaClient()
-
-// Ensure PORT is always 3001 in development
+const app = express();
+const prisma = new PrismaClient();
 const port = process.env.NODE_ENV === 'development' 
   ? 3001 
   : Number(process.env.PORT) || 3001;
 
-// Configure CORS for development and production
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'production'
-    ? process.env.ALLOWED_ORIGINS?.split(',') || []
-    : ['http://localhost:3000'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+// Add request logging in development
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`, {
+      headers: req.headers,
+      query: req.query,
+      body: req.body
+    });
+    next();
+  });
 }
 
-app.use(cors(corsOptions))
-app.use(express.json())
+// Middleware
+app.use(express.json());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.ALLOWED_ORIGINS?.split(',') || []
+    : 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+}));
 
-// Health check endpoint
+// Health check
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'healthy',
     environment: process.env.NODE_ENV,
-    port
-  })
-})
+    port: port
+  });
+});
 
-// API Routes
-const apiRouter = express.Router()
-
-// Auth routes
-apiRouter.use('/auth', authRouter)
-
-// Public routes
-apiRouter.use('/events', eventsRouter)
-apiRouter.use('/prayer-times', prayerTimesRouter)
-apiRouter.use('/announcements', announcementsRouter)
-apiRouter.use('/contact', contactRouter)
-apiRouter.use('/hebrew-calendar', hebrewCalendarRouter)
-apiRouter.use('/memorial-days', memorialDaysRouter)
+// Routes
+app.use('/api/events', eventsRouter);
+app.use('/api/prayer-times', prayerTimesRouter);
+app.use('/api/announcements', announcementsRouter);
+app.use('/api/contact', contactRouter);
+app.use('/api/hebrew-calendar', hebrewCalendarRouter);
+app.use('/api/memorial-days', memorialDaysRouter);
+app.use('/api/zmanim', zmanimRouter);
+app.use('/auth', authRouter);
+app.use('/api/images', publicImagesRouter);
 
 // Admin routes
-apiRouter.use('/admin/images', imagesRouter)
-apiRouter.use('/admin/prayer-times', prayerTimesRouter)
-apiRouter.use('/admin/announcements', announcementsRouter)
-
-// Mount all routes under /api
-app.use('/api', apiRouter)
+app.use('/api/admin/announcements', announcementsRouter);
+app.use('/api/admin/categories', categoriesRouter);
+app.use('/api/admin/images', imagesRouter);
 
 // Static files for uploaded images
 app.use('/uploads', express.static('uploads'))
@@ -85,7 +82,8 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
     message: err.message,
     stack: err.stack,
     path: req.path,
-    method: req.method
+    method: req.method,
+    headers: req.headers
   })
   
   res.status(500).json({ 
@@ -96,6 +94,11 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 
 // Handle 404 errors
 app.use((req, res) => {
+  console.log('404 Not Found:', {
+    path: req.path,
+    method: req.method,
+    headers: req.headers
+  });
   res.status(404).json({
     success: false,
     error: 'הדף המבוקש לא נמצא'
@@ -103,9 +106,9 @@ app.use((req, res) => {
 })
 
 const server = app.listen(port, '0.0.0.0', () => {
-  console.log(`Server is running in ${process.env.NODE_ENV} mode on port ${port}`)
-  console.log(`Health check available at http://localhost:${port}/health`)
-})
+  console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${port}`);
+  console.log(`Health check available at http://localhost:${port}/health`);
+});
 
 // Graceful shutdown
 process.on('SIGTERM', () => {

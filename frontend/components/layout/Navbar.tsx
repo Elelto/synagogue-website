@@ -25,7 +25,7 @@ export function Navbar() {
             </div>
           </div>
           
-          <div className="flex items-center space-x-8 space-x-reverse">
+          <div className="flex items-center justify-end space-x-8 space-x-reverse rtl">
             {navigation.map((item) => (
               <Link
                 key={item.name}

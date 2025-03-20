@@ -19,6 +19,8 @@ router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
+    console.log('Login attempt for username:', username);
+
     if (!username || !password) {
       return res.status(400).json({
         success: false,
@@ -38,6 +40,7 @@ router.post('/login', async (req, res) => {
     });
 
     if (!user) {
+      console.log('User not found:', username);
       return res.status(401).json({
         success: false,
         error: 'שם משתמש או סיסמה שגויים'
@@ -47,6 +50,7 @@ router.post('/login', async (req, res) => {
     const isValid = await bcrypt.compare(password, user.password);
 
     if (!isValid) {
+      console.log('Invalid password for user:', username);
       return res.status(401).json({
         success: false,
         error: 'שם משתמש או סיסמה שגויים'
@@ -63,6 +67,12 @@ router.post('/login', async (req, res) => {
       },
       process.env.NEXTAUTH_SECRET
     );
+
+    console.log('Login successful for user:', {
+      username: user.username,
+      role: user.role,
+      tokenLength: token.length
+    });
 
     res.json({
       success: true,

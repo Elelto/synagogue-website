@@ -52,8 +52,10 @@ router.get('/categories', authenticateAdmin, async (req, res) => {
         }
       }
     });
+    console.log('Found', categories.length, 'categories');
     res.json(categories);
   } catch (error) {
+    console.error('Failed to fetch categories:', error);
     res.status(500).json({ error: 'Failed to fetch categories' });
   }
 });
@@ -62,11 +64,14 @@ router.get('/categories', authenticateAdmin, async (req, res) => {
 router.post('/categories', authenticateAdmin, async (req, res) => {
   const { name, description } = req.body;
   try {
+    console.log('Creating new category:', { name, description });
     const category = await prisma.imageCategory.create({
       data: { name, description }
     });
+    console.log('Created category:', category);
     res.json(category);
   } catch (error) {
+    console.error('Failed to create category:', error);
     res.status(500).json({ error: 'Failed to create category' });
   }
 });
@@ -81,16 +86,28 @@ router.post('/upload', authenticateAdmin, upload.single('image'), async (req: Mu
   const url = `/uploads/images/${req.file.filename}`;
 
   try {
+    console.log('Uploading image:', {
+      title,
+      description,
+      categoryId,
+      url,
+      file: req.file.filename
+    });
+
     const image = await prisma.image.create({
       data: {
         title,
         description,
         url,
         categoryId: parseInt(categoryId),
+        displayOrder: 0 // Default to start of list
       }
     });
+
+    console.log('Created image:', image);
     res.json(image);
   } catch (error) {
+    console.error('Failed to save image:', error);
     // Clean up uploaded file if database operation fails
     fs.unlinkSync(req.file.path);
     res.status(500).json({ error: 'Failed to save image information' });
@@ -101,6 +118,7 @@ router.post('/upload', authenticateAdmin, upload.single('image'), async (req: Mu
 router.put('/reorder', authenticateAdmin, async (req, res) => {
   const { images } = req.body; // Array of { id, displayOrder }
   try {
+    console.log('Reordering images:', images);
     const updates = images.map(({ id, displayOrder }) =>
       prisma.image.update({
         where: { id },
@@ -108,16 +126,19 @@ router.put('/reorder', authenticateAdmin, async (req, res) => {
       })
     );
     await prisma.$transaction(updates);
+    console.log('Successfully reordered images');
     res.json({ success: true });
   } catch (error) {
+    console.error('Failed to update image order:', error);
     res.status(500).json({ error: 'Failed to update image order' });
   }
 });
 
 // Delete image
-router.delete('/images/:id', authenticateAdmin, async (req, res) => {
+router.delete('/:id', authenticateAdmin, async (req, res) => {
   const { id } = req.params;
   try {
+    console.log('Deleting image:', id);
     const image = await prisma.image.findUnique({ where: { id: parseInt(id) } });
     if (!image) {
       return res.status(404).json({ error: 'Image not found' });
@@ -131,9 +152,53 @@ router.delete('/images/:id', authenticateAdmin, async (req, res) => {
 
     // Delete from database
     await prisma.image.delete({ where: { id: parseInt(id) } });
+    console.log('Successfully deleted image');
     res.json({ success: true });
   } catch (error) {
+    console.error('Failed to delete image:', error);
     res.status(500).json({ error: 'Failed to delete image' });
+  }
+});
+
+// Delete category and all its images
+router.delete('/categories/:id', authenticateAdmin, async (req, res) => {
+  const { id } = req.params;
+  try {
+    console.log('Deleting category:', id);
+    
+    // Get all images in the category
+    const category = await prisma.imageCategory.findUnique({
+      where: { id: parseInt(id) },
+      include: { images: true }
+    });
+
+    if (!category) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+
+    // Delete all image files
+    for (const image of category.images) {
+      const filePath = path.join(__dirname, '../../../../frontend/public', image.url);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    // First delete all images in the category
+    await prisma.image.deleteMany({
+      where: { categoryId: parseInt(id) }
+    });
+
+    // Then delete the category
+    await prisma.imageCategory.delete({
+      where: { id: parseInt(id) }
+    });
+
+    console.log('Successfully deleted category and its images');
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Failed to delete category:', error);
+    res.status(500).json({ error: 'Failed to delete category' });
   }
 });
 

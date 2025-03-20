@@ -19,10 +19,16 @@ export const authOptions: NextAuthOptions = {
             throw new Error('שם משתמש וסיסמה הם שדות חובה');
           }
 
+          console.log('Attempting login with:', {
+            url: `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+            username: credentials.username
+          });
+
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Accept': 'application/json'
             },
             body: JSON.stringify({
               username: credentials.username,
@@ -30,10 +36,22 @@ export const authOptions: NextAuthOptions = {
             }),
           });
 
+          console.log('Login response status:', response.status);
           const data = await response.json();
+          console.log('Login response:', {
+            success: data.success,
+            userId: data.user?.id,
+            role: data.user?.role,
+            hasToken: !!data.token
+          });
 
           if (!response.ok) {
             throw new Error(data.error || 'שם משתמש או סיסמה שגויים');
+          }
+
+          if (!data.token) {
+            console.error('No token received from server');
+            throw new Error('לא התקבל טוקן מהשרת');
           }
 
           return {
@@ -55,18 +73,36 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
+      console.log('JWT Callback:', { 
+        hasUser: !!user,
+        tokenBefore: { ...token, token: token.token ? '[HIDDEN]' : undefined },
+        userToken: user?.token ? '[HIDDEN]' : undefined
+      });
+
       if (user) {
-        token.role = user.role;
-        token.token = user.token;
+        // Initial sign in
+        return {
+          ...token,
+          role: user.role,
+          token: user.token,
+        };
       }
       return token;
     },
     async session({ session, token }) {
-      if (session?.user) {
-        (session.user as any).role = token.role;
-        (session as any).token = token.token;
-      }
-      return session;
+      console.log('Session Callback:', {
+        hasToken: !!token.token,
+        role: token.role
+      });
+
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          role: token.role,
+          token: token.token,
+        }
+      };
     }
   },
   secret: process.env.NEXTAUTH_SECRET,

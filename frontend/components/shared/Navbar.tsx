@@ -47,18 +47,20 @@ export function Navbar() {
           {/* Logo */}
           <div className="relative w-12 h-12">
             <div className={`transition-opacity duration-300 ${logoLoaded ? 'opacity-100' : 'opacity-0'}`}>
-              <Image
-                src="/images/logo-removebg-preview.png"
-                alt="לוגו בית הכנסת"
-                width={48}
-                height={48}
-                onLoad={() => setLogoLoaded(true)}
-                onError={(e) => {
-                  console.error('Failed to load logo');
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                }}
-              />
+              <Link href="/">
+                <Image
+                  src="/images/logo-removebg-preview.png"
+                  alt="לוגו בית הכנסת"
+                  width={48}
+                  height={48}
+                  onLoad={() => setLogoLoaded(true)}
+                  onError={(e) => {
+                    console.error('Failed to load logo');
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
+              </Link>
             </div>
             {!logoLoaded && (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -68,7 +70,7 @@ export function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-8">
+          <div className="hidden md:flex gap-8 justify-center items-center">
             <Link 
               href="/" 
               className="text-[#8B4513] hover:text-[#B8860B] transition-colors duration-300"

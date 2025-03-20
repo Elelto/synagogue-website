@@ -9,11 +9,20 @@ interface PrayerTime {
   description?: string;
 }
 
+interface SpecialEvent {
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+}
+
 export function Schedule() {
   const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [specialEvents, setSpecialEvents] = useState<SpecialEvent[]>([]);
 
   const fetchPrayerTimes = async () => {
     try {
@@ -45,61 +54,102 @@ export function Schedule() {
     fetchPrayerTimes();
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#B8860B] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[#8B4513]">טוען זמני תפילה...</p>
-        </div>
-      </div>
-    );
-  }
+  const handlePrevDay = () => {
+    setSelectedDate(prevDate => new Date(prevDate.setDate(prevDate.getDate() - 1)));
+  };
 
-  if (error) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center">
-          <div className="bg-red-100 p-6 rounded-lg">
-            <p className="text-red-600 mb-4">{error}</p>
-            <button
-              onClick={handleRetry}
-              className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-300"
-            >
-              נסה שוב
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (prayerTimes.length === 0) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <p className="text-[#8B4513] text-lg">אין זמני תפילה זמינים כרגע</p>
-      </div>
-    );
-  }
+  const handleNextDay = () => {
+    setSelectedDate(prevDate => new Date(prevDate.setDate(prevDate.getDate() + 1)));
+  };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-3xl font-bold text-[#8B4513] mb-8 text-center">זמני תפילות</h2>
-      
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {prayerTimes.map((prayer) => (
-          <div
-            key={prayer.id}
-            className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-          >
-            <h3 className="text-xl font-bold text-[#8B4513] mb-2">{prayer.name}</h3>
-            <p className="text-2xl text-[#B8860B] mb-2 font-bold">{prayer.time}</p>
-            {prayer.description && (
-              <p className="text-gray-600 text-sm">{prayer.description}</p>
-            )}
-          </div>
-        ))}
+    <div className="container mx-auto px-4 py-8">
+      <h2 className="text-3xl font-bold text-[#1E6B87] mb-8 text-center">לוח זמנים</h2>
+
+      {/* Date Selector */}
+      <div className="flex justify-center gap-4 mb-8">
+        <button
+          onClick={handlePrevDay}
+          className="px-4 py-2 text-[#1E6B87] hover:text-[#C6A45C] transition-colors duration-300"
+        >
+          ❮ יום הקודם
+        </button>
+        <div className="text-[#1E6B87] font-semibold text-lg">
+          {selectedDate.toLocaleDateString('he-IL', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
+        </div>
+        <button
+          onClick={handleNextDay}
+          className="px-4 py-2 text-[#1E6B87] hover:text-[#C6A45C] transition-colors duration-300"
+        >
+          יום הבא ❯
+        </button>
       </div>
+
+      {isLoading ? (
+        <div className="min-h-[400px] flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-[#C6A45C] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-[#1E6B87] font-semibold">טוען זמני תפילה...</p>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="bg-[#E6EEF2] p-6 rounded-lg text-center">
+          <p className="text-[#1E6B87] mb-4">{error}</p>
+          <button
+            onClick={fetchPrayerTimes}
+            className="px-6 py-3 bg-[#C6A45C] text-white rounded-full hover:bg-[#D4AF37] transition-colors duration-300"
+          >
+            נסה שוב
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {prayerTimes.map((prayer) => (
+            <div
+              key={prayer.name}
+              className="bg-white p-6 rounded-lg shadow-md border border-[#E6EEF2] hover:border-[#1E6B87] transition-colors duration-300"
+            >
+              <h3 className="text-xl font-bold text-[#1E6B87] mb-3">{prayer.name}</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-[#1E6B87]">
+                  <span>זמן התפילה</span>
+                  <span className="font-semibold">{prayer.time}</span>
+                </div>
+                {prayer.description && (
+                  <p className="text-[#1E6B87]">{prayer.description}</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Special Events Section */}
+      {specialEvents.length > 0 && (
+        <div className="mt-12">
+          <h3 className="text-2xl font-bold text-[#1E6B87] mb-6 text-center">אירועים מיוחדים</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {specialEvents.map((event, index) => (
+              <div
+                key={index}
+                className="bg-[#E6EEF2] p-6 rounded-lg"
+              >
+                <h4 className="text-xl font-bold text-[#1E6B87] mb-2">{event.title}</h4>
+                <p className="text-[#1E6B87] mb-4">{event.description}</p>
+                <div className="flex items-center justify-between text-[#1E6B87]">
+                  <span>{event.date}</span>
+                  <span>{event.time}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

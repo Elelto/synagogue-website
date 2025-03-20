@@ -7,77 +7,102 @@ import '../../app/globals.css';
 
 export function HeroSection() {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const offset = window.scrollY;
+      setScrolled(offset > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <section className="relative min-h-[600px] flex items-center justify-center overflow-hidden">
-      {/* Background with gradient */}
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Image with Gradient Overlay */}
       <div className="absolute inset-0">
-        <div 
-          className="absolute inset-0 bg-gradient-to-br from-blue-50 via-amber-50 to-orange-50"
-          style={{
-            backgroundSize: 'cover',
-            opacity: 0.9
-          }}
+        <Image
+          src="/images/hero-background.jpeg"
+          alt="בית המדרש"
+          fill
+          style={{ objectFit: 'cover' }}
+          className={`grayscale transition-transform duration-1000 ${scrolled ? 'scale-110' : 'scale-100'}`}
+          priority
+          quality={90}
         />
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-white to-[#87CEEB] opacity-90"></div>
       </div>
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 py-16 flex flex-col items-center justify-center h-full">
-        {/* Logo Container */}
-        <div className="relative w-72 h-72 md:w-96 md:h-96 mb-8 group">
-          <div className="absolute inset-0 bg-white/60 rounded-full blur-2xl transform -translate-y-4 group-hover:blur-3xl transition-all duration-500"></div>
-          <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-500">
-            <Image
-              src="/images/logo-removebg-preview.png"
-              alt="בית הכנסת חזון יוסף"
-              fill
-              style={{ objectFit: 'contain' }}
-              className="drop-shadow-2xl transform group-hover:brightness-110 transition-all duration-500"
-              priority
-              onLoad={() => setIsImageLoaded(true)}
-            />
-          </div>
+        {/* Logo Container with Animation */}
+        <div className={`relative w-96 h-96 md:w-[32rem] md:h-[32rem] mb-16 transition-all duration-700 ${isImageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <Image
+            src="/images/logo-removebg-preview.png"
+            alt="בית הכנסת חזון יוסף"
+            fill
+            style={{ objectFit: 'contain' }}
+            className="drop-shadow-2xl"
+            priority
+            quality={90}
+            onLoad={() => setIsImageLoaded(true)}
+          />
         </div>
 
-        <h1 className="text-5xl md:text-6xl font-bold text-[#8B4513] mb-6 text-center hebrew-text drop-shadow-lg">
-          חזון יוסף
-        </h1>
+        {/* Welcome Text */}
+        <div className={`text-center mb-12 transition-all duration-700 delay-300 ${isImageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <h1 className="text-4xl md:text-5xl font-bold text-[#1E6B87] mb-4 hebrew-text">ברוכים הבאים לבית הכנסת חזון יוסף</h1>
+          <p className="text-xl md:text-2xl text-gray-700 hebrew-text">מקום של תורה, תפילה וחסד</p>
+        </div>
 
-        {/* Subtitle */}
-        <h2 className="text-xl md:text-2xl text-[#B8860B] mb-6 text-center max-w-2xl hebrew-text">
-          לעילוי נשמת מרן רשכבה"ג רבנו עובדיה יוסף זצוקללה"ה
-        </h2>
-
-        {/* Description */}
-        <p className="text-lg md:text-xl text-[#1C1C1C] mb-8 text-center max-w-2xl hebrew-text leading-relaxed">
-          מקום של תפילה, לימוד וקהילה
-        </p>
-
-        <div className="flex flex-wrap justify-center gap-4">
-          <Link 
-            href="/gallery" 
-            className="golden-button hebrew-text text-lg"
-          >
-            גלריית תמונות
-          </Link>
+        {/* Action Buttons with Hover Effects */}
+        <div className={`flex flex-wrap justify-center gap-6 md:gap-8 transition-all duration-700 delay-500 ${isImageLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <Link 
             href="/schedule" 
-            className="golden-button hebrew-text text-lg"
+            className="group px-10 py-5 text-2xl md:text-3xl font-bold text-white bg-[#C6A45C] hover:bg-[#D4AF37] rounded-full shadow-lg transition-all duration-300 hebrew-text border-2 border-[#1E6B87] hover:scale-105"
           >
-            זמני תפילות
+            <span className="inline-flex items-center">
+              זמני תפילות
+              <svg className="w-6 h-6 mr-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </span>
+          </Link>
+          <Link 
+            href="/gallery" 
+            className="group px-10 py-5 text-2xl md:text-3xl font-bold text-white bg-[#C6A45C] hover:bg-[#D4AF37] rounded-full shadow-lg transition-all duration-300 hebrew-text border-2 border-[#1E6B87] hover:scale-105"
+          >
+            <span className="inline-flex items-center">
+              גלריה
+              <svg className="w-6 h-6 mr-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </span>
           </Link>
           <Link 
             href="/contact" 
-            className="golden-button hebrew-text text-lg"
+            className="group px-10 py-5 text-2xl md:text-3xl font-bold text-white bg-[#C6A45C] hover:bg-[#D4AF37] rounded-full shadow-lg transition-all duration-300 hebrew-text border-2 border-[#1E6B87] hover:scale-105"
           >
-            צור קשר
+            <span className="inline-flex items-center">
+              יצירת קשר
+              <svg className="w-6 h-6 mr-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </span>
           </Link>
         </div>
-      </div>
 
-      {/* Overlay for better text readability */}
-      <div className="absolute inset-0 bg-black opacity-30" />
+        {/* Scroll Indicator */}
+        <div className={`absolute bottom-8 left-1/2 transform -translate-x-1/2 transition-all duration-700 delay-700 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="animate-bounce">
+            <svg className="w-6 h-6 text-[#1E6B87]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

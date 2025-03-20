@@ -6,30 +6,58 @@ const prisma = new PrismaClient();
 
 export const authenticateAdmin = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const authHeader = req.headers.authorization;
     
-    if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('Missing or invalid Authorization header:', authHeader);
+      return res.status(401).json({ error: 'אנא התחבר כמנהל' });
     }
 
-    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET!) as { userId: number; role: string };
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId }
-    });
-
-    if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+    const token = authHeader.split(' ')[1];
+    
+    if (!process.env.NEXTAUTH_SECRET) {
+      console.error('NEXTAUTH_SECRET is not set');
+      return res.status(500).json({ error: 'שגיאת תצורת שרת' });
     }
 
-    if (user.role !== decoded.role) {
-      return res.status(401).json({ error: 'Invalid role' });
-    }
+    try {
+      const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET) as { userId: number; role: string };
+      console.log('Decoded token:', { ...decoded, token: '***' });
 
-    // Add user to request object
-    (req as any).user = user;
-    next();
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: {
+          id: true,
+          username: true,
+          role: true
+        }
+      });
+
+      if (!user) {
+        console.log('User not found:', decoded.userId);
+        return res.status(401).json({ error: 'משתמש לא נמצא' });
+      }
+
+      if (user.role !== 'admin') {
+        console.log('User not admin:', user);
+        return res.status(403).json({ error: 'אין הרשאות מנהל' });
+      }
+
+      // Add user to request object
+      (req as any).user = user;
+      next();
+    } catch (jwtError) {
+      console.error('JWT verification error:', jwtError);
+      if (jwtError instanceof jwt.JsonWebTokenError) {
+        return res.status(401).json({ error: 'טוקן לא תקין' });
+      }
+      if (jwtError instanceof jwt.TokenExpiredError) {
+        return res.status(401).json({ error: 'פג תוקף החיבור, אנא התחבר מחדש' });
+      }
+      throw jwtError;
+    }
   } catch (error) {
     console.error('Authentication error:', error);
-    return res.status(401).json({ error: 'Invalid token' });
+    return res.status(500).json({ error: 'שגיאת אימות' });
   }
 };

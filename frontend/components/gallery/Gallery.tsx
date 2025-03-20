@@ -1,72 +1,57 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 
 interface GalleryImage {
   id: number;
-  src: string;
-  alt: string;
-  category: string;
-  width: number;
-  height: number;
+  title: string;
+  description: string;
+  url: string;
+  categoryId: number;
+  displayOrder: number;
 }
 
-const images: GalleryImage[] = [
-  {
-    id: 1,
-    src: '/images/gallery/IMG-20250219-WA0006.jpg',
-    alt: 'תפילת שחרית',
-    category: 'תפילות',
-    width: 800,
-    height: 600
-  },
-  {
-    id: 2,
-    src: '/images/gallery/IMG-20250219-WA0007.jpg',
-    alt: 'שיעור תורה',
-    category: 'שיעורים',
-    width: 800,
-    height: 600
-  },
-  {
-    id: 3,
-    src: '/images/gallery/IMG-20250219-WA0008.jpg',
-    alt: 'סעודה שלישית',
-    category: 'אירועים',
-    width: 800,
-    height: 600
-  },
-  {
-    id: 4,
-    src: '/images/gallery/IMG-20250219-WA0009.jpg',
-    alt: 'אירוע קהילתי',
-    category: 'אירועים',
-    width: 800,
-    height: 600
-  },
-  {
-    id: 5,
-    src: '/images/gallery/IMG-20250219-WA0010.jpg',
-    alt: 'לימוד תורה',
-    category: 'שיעורים',
-    width: 800,
-    height: 600
-  }
-];
-
-const categories = images
-  .map(img => img.category)
-  .filter((category, index, array) => array.indexOf(category) === index);
+interface Category {
+  id: number;
+  name: string;
+  description: string;
+  images: GalleryImage[];
+}
 
 export function Gallery() {
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [error, setError] = useState<string | null>(null);
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  // Fetch categories and images
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${apiUrl}/api/images/categories`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setCategories(data);
+        setError(null);
+      } catch (error) {
+        console.error('Failed to fetch images:', error);
+        setError('שגיאה בטעינת התמונות. אנא נסה שוב מאוחר יותר.');
+        setCategories([]);
+      }
+    };
+
+    fetchCategories();
+  }, [apiUrl]);
 
   const filteredImages = selectedCategory
-    ? images.filter(img => img.category === selectedCategory)
-    : images;
+    ? categories.find(c => c.id === selectedCategory)?.images || []
+    : categories.flatMap(c => c.images);
 
   const currentImageIndex = selectedImage
     ? filteredImages.findIndex(img => img.id === selectedImage.id)
@@ -116,38 +101,46 @@ export function Gallery() {
     }
   }, [currentImageIndex, filteredImages, selectedImage]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  if (error) {
+    return (
+      <div className="text-center text-red-600 p-4">
+        {error}
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h2 className="text-3xl font-bold text-[#8B4513] mb-8 text-center">גלריית תמונות</h2>
+      <h2 className="text-3xl font-bold text-[#1E6B87] mb-8 text-center">גלריית תמונות</h2>
       
       {/* Category Filter */}
       <div className="flex flex-wrap justify-center gap-4 mb-8">
         <button
           className={`px-4 py-2 rounded-full transition-colors duration-300 ${
             !selectedCategory
-              ? 'bg-[#8B4513] text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-[#C6A45C] text-white'
+              : 'bg-white text-[#1E6B87] border border-[#1E6B87] hover:bg-[#E6EEF2]'
           }`}
           onClick={() => setSelectedCategory(null)}
         >
           הכל
         </button>
-        {categories.map(category => (
+        {categories.map((category) => (
           <button
-            key={category}
+            key={category.id}
             className={`px-4 py-2 rounded-full transition-colors duration-300 ${
-              selectedCategory === category
-                ? 'bg-[#8B4513] text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              selectedCategory === category.id
+                ? 'bg-[#C6A45C] text-white'
+                : 'bg-white text-[#1E6B87] border border-[#1E6B87] hover:bg-[#E6EEF2]'
             }`}
-            onClick={() => setSelectedCategory(category)}
+            onClick={() => setSelectedCategory(category.id)}
           >
-            {category}
+            {category.name}
           </button>
         ))}
       </div>
@@ -157,26 +150,26 @@ export function Gallery() {
         {filteredImages.map((image) => (
           <div
             key={image.id}
-            className="relative group cursor-pointer overflow-hidden rounded-lg shadow-lg transform transition duration-300 hover:scale-105"
+            className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md transform transition duration-300 hover:scale-105"
             onClick={() => {
               setSelectedImage(image);
               setZoomLevel(1);
             }}
           >
-            <div className="relative w-full h-64">
+            <div className="relative aspect-[4/3]">
               <Image
-                src={image.src}
-                alt={image.alt}
-                width={image.width}
-                height={image.height}
-                className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
-                priority={image.id <= 3}
+                src={image.url}
+                alt={image.title}
+                fill
+                style={{ objectFit: 'cover' }}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority={image.displayOrder <= 2}
               />
             </div>
-            <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+            <div className="absolute inset-0 bg-[#1E6B87] bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
               <div className="text-center">
-                <span className="text-white text-lg font-semibold block">{image.alt}</span>
-                <span className="text-white text-sm mt-2 block">{image.category}</span>
+                <span className="text-white text-lg font-semibold block">{image.title}</span>
+                <span className="text-[#C6A45C] text-sm mt-2 block">{image.description}</span>
               </div>
             </div>
           </div>
@@ -186,17 +179,17 @@ export function Gallery() {
       {/* Modal */}
       {selectedImage && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-[#1E6B87] bg-opacity-90 flex items-center justify-center z-50 p-4"
           onClick={() => {
             setSelectedImage(null);
             setZoomLevel(1);
           }}
         >
-          <div className="relative max-w-6xl w-full h-auto">
+          <div className="relative max-w-4xl w-full">
             {/* Navigation Buttons */}
             {currentImageIndex > 0 && (
               <button
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-4xl hover:text-gray-300 z-10"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#C6A45C] text-4xl hover:text-white z-10"
                 onClick={handlePrevImage}
               >
                 ❮
@@ -204,61 +197,49 @@ export function Gallery() {
             )}
             {currentImageIndex < filteredImages.length - 1 && (
               <button
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-4xl hover:text-gray-300 z-10"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#C6A45C] text-4xl hover:text-white z-10"
                 onClick={handleNextImage}
               >
                 ❯
               </button>
             )}
 
+            {/* Zoom Controls */}
+            <div className="absolute top-4 right-4 flex gap-2">
+              <button
+                className="bg-[#C6A45C] text-white p-2 rounded hover:bg-[#D4AF37]"
+                onClick={handleZoomIn}
+              >
+                +
+              </button>
+              <button
+                className="bg-[#C6A45C] text-white p-2 rounded hover:bg-[#D4AF37]"
+                onClick={handleZoomOut}
+              >
+                -
+              </button>
+            </div>
+
             {/* Image */}
-            <div className="overflow-hidden">
+            <div className="relative aspect-[4/3] overflow-hidden">
               <Image
-                src={selectedImage.src}
-                alt={selectedImage.alt}
-                width={selectedImage.width}
-                height={selectedImage.height}
-                className="object-contain w-full h-auto transition-transform duration-300"
-                style={{ transform: `scale(${zoomLevel})` }}
+                src={selectedImage.url}
+                alt={selectedImage.title}
+                fill
+                style={{
+                  objectFit: 'contain',
+                  transform: `scale(${zoomLevel})`,
+                  transition: 'transform 0.3s ease'
+                }}
+                sizes="100vw"
                 priority
               />
             </div>
 
-            {/* Controls */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-4 bg-black bg-opacity-50 px-4 py-2 rounded-full">
-              <button
-                className="text-white hover:text-gray-300"
-                onClick={handleZoomOut}
-                disabled={zoomLevel <= 0.5}
-              >
-                −
-              </button>
-              <span className="text-white">{Math.round(zoomLevel * 100)}%</span>
-              <button
-                className="text-white hover:text-gray-300"
-                onClick={handleZoomIn}
-                disabled={zoomLevel >= 2}
-              >
-                +
-              </button>
-            </div>
-
-            {/* Close Button */}
-            <button
-              className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300"
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedImage(null);
-                setZoomLevel(1);
-              }}
-            >
-              ✕
-            </button>
-
-            {/* Image Info */}
-            <div className="absolute bottom-4 right-4 text-white text-right bg-black bg-opacity-50 p-2 rounded">
-              <div className="font-semibold">{selectedImage.alt}</div>
-              <div className="text-sm">{selectedImage.category}</div>
+            {/* Caption */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center">
+              <h3 className="text-white text-xl font-semibold">{selectedImage.title}</h3>
+              <p className="text-[#C6A45C] mt-2">{selectedImage.description}</p>
             </div>
           </div>
         </div>
