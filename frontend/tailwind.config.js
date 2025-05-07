@@ -9,7 +9,10 @@ module.exports = {
     extend: {
       colors: {
         synagogue: {
-          gold: '#C6A455',
+          gold: '#FFD700',
+          hover: {
+            gold: '#FFC500'
+          },
           navy: '#1B365D',
           burgundy: '#8B0000',
         }
@@ -18,10 +21,18 @@ module.exports = {
         flicker: {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.8' }
+        },
+        shine: {
+          '0%': { backgroundPosition: '200% center' },
+          '100%': { backgroundPosition: '-200% center' }
         }
       },
       animation: {
-        flicker: 'flicker 1.5s ease-in-out infinite'
+        flicker: 'flicker 5s ease-in-out infinite',
+        shine: 'shine 3s linear infinite'
+      },
+      backgroundSize: {
+        'shine': '200% 100%'
       }
     },
   },

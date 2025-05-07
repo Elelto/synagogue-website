@@ -26,18 +26,21 @@ const prayerTimeSchema = z.object({
 
 // Public route - Get prayer times (regular or holiday)
 router.get('/', async (req, res) => {
-  const isHoliday = req.query.holiday === 'true';
   try {
+    const { date } = req.query;
+    let targetDate = date ? new Date(date as string) : new Date();
+    const dayOfWeek = targetDate.getDay();
+    const isHoliday = req.query.holiday === 'true';
+
     const prayerTimes = await prisma.prayerTime.findMany({
       where: {
-        isHoliday
+        isHoliday,
+        OR: [
+          { dayOfWeek: isHoliday ? null : dayOfWeek },
+          { dayOfWeek: null }  // Include prayers that occur every day
+        ]
       },
-      orderBy: isHoliday 
-        ? { time: 'asc' }
-        : [
-            { dayOfWeek: 'asc' },
-            { time: 'asc' }
-          ]
+      orderBy: { time: 'asc' }
     });
 
     res.json({
@@ -49,7 +52,7 @@ router.get('/', async (req, res) => {
     console.error('Error fetching prayer times:', error);
     res.status(500).json({ 
       success: false, 
-      error: isHoliday 
+      error: req.query.holiday === 'true'
         ? 'אירעה שגיאה בטעינת זמני תפילות החג'
         : 'אירעה שגיאה בטעינת זמני התפילה'
     });

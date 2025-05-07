@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { HebrewCalendar as HebCal, HDate, months } from '@hebcal/core';
-import { PayPalButtons } from '@paypal/react-paypal-js';
-import { loadStripe } from '@stripe/stripe-js';
 
 interface MemorialDay {
   id: number;
@@ -93,12 +91,53 @@ const DayCell: React.FC<DayProps> = ({ date, hebrewDate, isPurchased, onClick })
   );
 };
 
+interface PurchaseFormData {
+  dedicatedTo: string;
+  purchasedBy: string;
+  email: string;
+  phone: string;
+  message?: string;
+}
+
 const DayDetails: React.FC<{
   day: { date: Date; hebrewDate: string; isPurchased: boolean };
   onClose: () => void;
   onPurchase: () => Promise<void>;
 }> = ({ day, onClose, onPurchase }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState<PurchaseFormData>({
+    dedicatedTo: '',
+    purchasedBy: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Open Kesher payment page in a new window
+      const kesherUrl = `https://kesher.org.il/pay/YOUR_ORG_ID`; // יש להחליף ל-ID של הארגון שלך
+      const params = new URLSearchParams({
+        sum: '18', // מחיר קבוע לנר נשמה
+        full_name: formData.purchasedBy,
+        email: formData.email,
+        phone: formData.phone,
+        comments: `נר נשמה לעילוי נשמת ${formData.dedicatedTo}. ${formData.message || ''}`,
+        success_url: `${window.location.origin}/memorial/thank-you`,
+        cancel_url: `${window.location.origin}/memorial`,
+        payment_type: '1', // תשלום רגיל
+        max_payments: '1' // תשלום אחד
+      });
+
+      window.location.href = `${kesherUrl}?${params.toString()}`;
+    } catch (error) {
+      console.error('Error redirecting to Kesher:', error);
+      setIsLoading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -119,41 +158,84 @@ const DayDetails: React.FC<{
         {day.isPurchased ? (
           <p className="text-red-600 text-right">יום זה כבר נרכש</p>
         ) : (
-          <div className="space-y-4">
-            <button
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-              onClick={() => onPurchase()}
-              disabled={isLoading}
-            >
-              {isLoading ? 'מעבד...' : 'הדלק נר נשמה'}
-            </button>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <PayPalButtons
-                createOrder={(data, actions) => {
-                  return actions.order.create({
-                    intent: "CAPTURE",
-                    purchase_units: [{
-                      amount: {
-                        value: '18.00',
-                        currency_code: 'USD'
-                      } as const
-                    }] as const
-                  } as const);
-                }}
-                onApprove={async (data, actions) => {
-                  await onPurchase();
-                }}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-right mb-1">לעילוי נשמת</label>
+              <input
+                type="text"
+                required
+                className="w-full p-2 border rounded-lg text-right"
+                value={formData.dedicatedTo}
+                onChange={(e) => setFormData({ ...formData, dedicatedTo: e.target.value })}
+                dir="rtl"
               />
             </div>
-          </div>
+
+            <div>
+              <label className="block text-right mb-1">שם התורם</label>
+              <input
+                type="text"
+                required
+                className="w-full p-2 border rounded-lg text-right"
+                value={formData.purchasedBy}
+                onChange={(e) => setFormData({ ...formData, purchasedBy: e.target.value })}
+                dir="rtl"
+              />
+            </div>
+
+            <div>
+              <label className="block text-right mb-1">דוא״ל</label>
+              <input
+                type="email"
+                required
+                className="w-full p-2 border rounded-lg text-right"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                dir="rtl"
+              />
+            </div>
+
+            <div>
+              <label className="block text-right mb-1">טלפון</label>
+              <input
+                type="tel"
+                required
+                pattern="[0-9]{9,10}"
+                className="w-full p-2 border rounded-lg text-right"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                dir="rtl"
+                placeholder="0501234567"
+              />
+            </div>
+
+            <div>
+              <label className="block text-right mb-1">הערה (אופציונלי)</label>
+              <textarea
+                className="w-full p-2 border rounded-lg text-right"
+                value={formData.message}
+                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                dir="rtl"
+                rows={3}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="relative w-full bg-gradient-to-b from-[#F3DF8A] via-[#E5B94E] to-[#D1A73C] hover:from-[#E5B94E] hover:via-[#D1A73C] hover:to-[#C49932] text-white py-3 px-4 rounded-lg transition-colors border-2 border-[#1E6B87] disabled:opacity-50 overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent bg-shine animate-shine"></div>
+              {isLoading ? 'מעבד...' : 'המשך לתשלום - ₪18'}
+            </button>
+          </form>
         )}
         
         <button
-          className="mt-4 text-gray-600 hover:text-gray-800 w-full text-center"
           onClick={onClose}
+          className="mt-4 w-full py-2 px-4 text-gray-600 hover:text-gray-800 transition-colors"
         >
-          סגירה
+          סגור
         </button>
       </motion.div>
     </motion.div>
@@ -161,160 +243,132 @@ const DayDetails: React.FC<{
 };
 
 const getHebrewDate = (date: Date) => {
-  const hebrewDate = new HDate(date);
-  return hebrewDate.toString();
+  const hDate = new HDate(date);
+  const monthName = Object.keys(months)[hDate.getMonth() - 1];
+  return `${hDate.getDate()} ${monthName} ${hDate.getFullYear()}`;
 };
 
-const LargeCandle: React.FC = () => {
+const LargeCandle: React.FC<{ isLit: boolean }> = ({ isLit }) => {
   return (
-    <div className="relative w-20 h-36 flex flex-col items-center">
-      {/* Animated flame */}
-      <motion.div
-        className="w-4 h-6 mb-1"
-        animate={{
-          height: ["24px", "28px", "24px"]
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      >
-        <div className="w-full h-full bg-orange-400 rounded-full blur-[1px]" />
-        <div className="absolute top-0 left-0 w-full h-full bg-orange-300 rounded-full opacity-50 blur-[2px] scale-125" />
-      </motion.div>
+    <div className="relative w-24 h-32 mx-auto">
+      {/* Flame */}
+      {isLit && (
+        <motion.div
+          className="absolute w-16 h-24 bottom-28 left-1/2 transform -translate-x-1/2"
+          initial={{ scale: 1 }}
+          animate={{
+            scale: [1, 1.1, 1],
+            rotate: [-2, 2, -2]
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 1.5,
+            ease: "easeInOut"
+          }}
+        >
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-16 bg-amber-400 rounded-full blur-[2px]" />
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-24 bg-amber-500 rounded-full opacity-50 blur-[4px]" />
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-24 h-24 bg-amber-300 rounded-full opacity-20 blur-[8px]" />
+        </motion.div>
+      )}
       
-      {/* Static candle */}
-      <div className="w-4 h-28 bg-white" />
+      {/* Candle body */}
+      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-24 bg-gradient-to-b from-gray-100 to-white rounded-lg shadow-lg">
+        {/* Wick */}
+        <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-2 bg-gray-600 rounded-full" />
+        
+        {/* Wax drips */}
+        <div className="absolute -right-1 top-4 w-2 h-8 bg-white rounded-full transform rotate-3" />
+        <div className="absolute -left-1 top-6 w-2 h-6 bg-white rounded-full transform -rotate-3" />
+      </div>
+      
+      {/* Base */}
+      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-2 bg-gray-300 rounded-full" />
+      
+      {/* Reflection */}
+      {isLit && (
+        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-amber-100 rounded-full opacity-30 blur-[4px]" />
+      )}
     </div>
   );
 };
 
 export const MemorialCalendar: React.FC = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDay, setSelectedDay] = useState<{
-    date: Date;
-    hebrewDate: string;
-    isPurchased: boolean;
-  } | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [purchasedDays, setPurchasedDays] = useState<MemorialDay[]>([]);
-
-  useEffect(() => {
-    fetch('/api/memorial-days')
-      .then(res => res.json())
-      .then(data => setPurchasedDays(data))
-      .catch(console.error);
-  }, []);
-
-  const getDaysInMonth = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const days = [];
-
-    for (let date = firstDay; date <= lastDay; date = new Date(date.setDate(date.getDate() + 1))) {
-      const hDate = new HDate(date);
-      days.push({
-        date: new Date(date),
-        hebrewDate: getHebrewDate(date),
-        isPurchased: purchasedDays.some(pd => 
-          format(new Date(pd.gregorianDate), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
-        )
-      });
-    }
-
-    return days;
-  };
+  
+  const daysInMonth = Array.from(
+    { length: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() },
+    (_, i) => new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1)
+  );
 
   const handlePurchase = async () => {
-    if (!selectedDay) return;
-
-    try {
-      const response = await fetch('/api/memorial-days', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          hebrewDate: selectedDay.hebrewDate,
-          gregorianDate: selectedDay.date,
-        }),
-      });
-
-      if (response.ok) {
-        const newPurchasedDay = await response.json();
-        setPurchasedDays([...purchasedDays, newPurchasedDay]);
-        setSelectedDay(null);
-      }
-    } catch (error) {
-      console.error('שגיאה ברכישת היום:', error);
-    }
+    // This will be handled by the form submission in DayDetails
   };
 
   return (
-    <div className="container mx-auto p-4 rtl">
-      <div className="relative flex justify-center">
-        {/* Main calendar in center */}
-        <div className="w-full max-w-[800px]">
-          <div className="bg-gradient-to-br from-orange-100 to-amber-50 rounded-2xl shadow-lg p-8 border border-amber-200">
-            <div className="flex justify-between items-center mb-8">
-              <button
-                onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}
-                className="text-amber-800 hover:text-amber-900 bg-amber-200 hover:bg-amber-300 rounded-full p-2 transition-colors duration-200"
-              >
-                &gt;
-              </button>
-              <h2 className="text-3xl font-bold text-amber-950">
-                {format(currentDate, 'MMMM yyyy', { locale: he })}
-              </h2>
-              <button
-                onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}
-                className="text-amber-800 hover:text-amber-900 bg-amber-200 hover:bg-amber-300 rounded-full p-2 transition-colors duration-200"
-              >
-                &lt;
-              </button>
-            </div>
+    <div className="bg-white rounded-xl shadow-xl p-6">
+      <div className="flex justify-between items-center mb-6">
+        <button
+          onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)))}
+          className="p-2 hover:bg-amber-50 rounded-full transition-colors"
+        >
+          <span className="text-2xl">→</span>
+        </button>
+        
+        <h2 className="text-2xl font-bold text-amber-900">
+          {format(currentMonth, 'MMMM yyyy', { locale: he })}
+        </h2>
+        
+        <button
+          onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)))}
+          className="p-2 hover:bg-amber-50 rounded-full transition-colors"
+        >
+          <span className="text-2xl">←</span>
+        </button>
+      </div>
 
-            <div className="grid grid-cols-7 gap-2 mb-4">
-              {['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'].map(day => (
-                <div key={day} className="text-center font-bold text-amber-900 pb-2 border-b border-amber-200">
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-2">
-              {getDaysInMonth().map((day, index) => (
-                <DayCell
-                  key={index}
-                  {...day}
-                  onClick={() => setSelectedDay(day)}
-                />
-              ))}
-            </div>
+      <div className="grid grid-cols-7 gap-2">
+        {['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'].map((day) => (
+          <div key={day} className="text-center font-bold text-amber-900">
+            {day}
           </div>
-        </div>
-
-        {/* Candle */}
-        <div className="lg:absolute lg:right-[-280px] lg:top-0 w-full lg:w-[250px] mt-8 lg:mt-0">
-          <div className="flex flex-col items-center justify-center space-y-6 p-8 bg-gradient-to-br from-orange-100 to-amber-50 rounded-2xl border border-amber-200">
-            <div className="transform lg:scale-100 scale-75">
-              <LargeCandle />
-            </div>
-            <div className="text-center">
-              <p className="text-xl lg:text-2xl text-amber-950 font-serif mt-4 lg:mt-8">נר ה׳ נשמת אדם</p>
-              <p className="text-xs lg:text-sm text-amber-800 mt-2">משלי כ׳ פסוק כ״ז</p>
-            </div>
-          </div>
-        </div>
+        ))}
+        
+        {Array.from({ length: new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay() }).map((_, i) => (
+          <div key={`empty-${i}`} />
+        ))}
+        
+        {daysInMonth.map((date) => {
+          const hebrewDate = getHebrewDate(date);
+          const isPurchased = purchasedDays.some(
+            (day) => day.gregorianDate.getTime() === date.getTime()
+          );
+          
+          return (
+            <DayCell
+              key={date.getTime()}
+              date={date}
+              hebrewDate={hebrewDate}
+              isPurchased={isPurchased}
+              onClick={() => setSelectedDate(date)}
+            />
+          );
+        })}
       </div>
 
       <AnimatePresence>
-        {selectedDay && (
+        {selectedDate && (
           <DayDetails
-            day={selectedDay}
-            onClose={() => setSelectedDay(null)}
+            day={{
+              date: selectedDate,
+              hebrewDate: getHebrewDate(selectedDate),
+              isPurchased: purchasedDays.some(
+                (day) => day.gregorianDate.getTime() === selectedDate.getTime()
+              )
+            }}
+            onClose={() => setSelectedDate(null)}
             onPurchase={handlePurchase}
           />
         )}

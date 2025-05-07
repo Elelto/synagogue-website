@@ -71,7 +71,7 @@ export default function LoginForm() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white py-8 px-4 shadow-lg sm:px-10 rounded-md border-2 border-[#1E6B87]">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700">
@@ -86,7 +86,7 @@ export default function LoginForm() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1E6B87] focus:border-[#1E6B87] sm:text-sm"
                   placeholder="הכנס שם משתמש"
                   disabled={isLoading}
                 />
@@ -106,7 +106,7 @@ export default function LoginForm() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1E6B87] focus:border-[#1E6B87] sm:text-sm"
                   placeholder="הכנס סיסמה"
                   disabled={isLoading}
                 />
@@ -134,7 +134,7 @@ export default function LoginForm() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                className={`w-full flex justify-center py-2 px-4 border-2 border-[#1E6B87] rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-b from-[#F3DF8A] via-[#E5B94E] to-[#D1A73C] hover:from-[#E5B94E] hover:via-[#D1A73C] hover:to-[#C49932] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1E6B87] ${
                   isLoading ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >

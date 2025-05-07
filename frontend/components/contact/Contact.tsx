@@ -103,19 +103,20 @@ export function Contact() {
       <h2 className="text-3xl font-bold text-[#1E6B87] mb-6 text-center">צור קשר</h2>
       
       {success ? (
-        <div className="bg-[#E6EEF2] p-4 rounded-lg text-[#1E6B87] text-center mb-6">
+        <div className="bg-[#E6EEF2] p-4 rounded-md text-[#1E6B87] text-center mb-6">
           <p>תודה על פנייתך! נחזור אליך בהקדם.</p>
           <button
             onClick={() => setSuccess(false)}
-            className="mt-4 px-6 py-3 bg-[#C6A45C] text-white rounded-full hover:bg-[#D4AF37] transition-colors duration-300"
+            className="relative mt-4 px-6 py-3 bg-gradient-to-b from-[#F3DF8A] via-[#E5B94E] to-[#D1A73C] hover:from-[#E5B94E] hover:via-[#D1A73C] hover:to-[#C49932] text-white rounded-md border-2 border-[#1E6B87] transition-colors duration-300 overflow-hidden group"
           >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent bg-shine animate-shine"></div>
             שלח הודעה נוספת
           </button>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           {Object.keys(errors).length > 0 && (
-            <div className="bg-[#E6EEF2] p-4 rounded-lg text-[#1E6B87] mb-6">
+            <div className="bg-[#E6EEF2] p-4 rounded-md text-[#1E6B87] mb-6">
               <ul className="list-disc list-inside">
                 {Object.values(errors).map((error, index) => (
                   <li key={index}>{error}</li>
@@ -135,7 +136,7 @@ export function Contact() {
               required
               value={formData.name}
               onChange={handleChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#1E6B87] focus:border-transparent ${
+              className={`w-full px-4 py-2 border-2 rounded-md focus:ring-2 focus:ring-[#1E6B87] focus:border-transparent ${
                 errors.name ? 'border-[#1E6B87]' : 'border-gray-300'
               }`}
               disabled={isSubmitting}
@@ -156,7 +157,7 @@ export function Contact() {
               required
               value={formData.email}
               onChange={handleChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#1E6B87] focus:border-transparent ${
+              className={`w-full px-4 py-2 border-2 rounded-md focus:ring-2 focus:ring-[#1E6B87] focus:border-transparent ${
                 errors.email ? 'border-[#1E6B87]' : 'border-gray-300'
               }`}
               disabled={isSubmitting}
@@ -177,7 +178,7 @@ export function Contact() {
               value={formData.message}
               onChange={handleChange}
               rows={5}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#1E6B87] focus:border-transparent ${
+              className={`w-full px-4 py-2 border-2 rounded-md focus:ring-2 focus:ring-[#1E6B87] focus:border-transparent ${
                 errors.message ? 'border-[#1E6B87]' : 'border-gray-300'
               }`}
               disabled={isSubmitting}
@@ -190,12 +191,13 @@ export function Contact() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`w-full py-3 px-6 text-white rounded-full transition-colors duration-300 ${
+            className={`relative w-full py-3 px-6 text-white rounded-md border-2 border-[#1E6B87] transition-colors duration-300 ${
               isSubmitting
                 ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-[#C6A45C] hover:bg-[#D4AF37]'
+                : 'bg-gradient-to-b from-[#F3DF8A] via-[#E5B94E] to-[#D1A73C] hover:from-[#E5B94E] hover:via-[#D1A73C] hover:to-[#C49932] overflow-hidden group'
             }`}
           >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent bg-shine animate-shine"></div>
             {isSubmitting ? 'שולח...' : 'שלח הודעה'}
           </button>
         </form>

@@ -9,7 +9,7 @@
   --secondary: #1C1C1C; /* Rich Black */
   --accent: #8B4513;   /* Saddle Brown */
   --light: #F5DEB3;    /* Wheat */
-  --background: #FFFAF0; /* Floral White */
+  --background: #FFFFFF; /* Pure White */
 }
 
 @layer base {
@@ -20,12 +20,29 @@
   }
   
   body {
-    @apply bg-[#FFFAF0] text-[#1C1C1C];
+    @apply text-[#1C1C1C];
     font-family: 'Frank Ruhl Libre', serif;
     overflow-x: hidden;
+    background: linear-gradient(45deg, #87CEEB15 25%, transparent 25%, transparent 75%, #87CEEB15 75%),
+                linear-gradient(45deg, #87CEEB15 25%, transparent 25%, transparent 75%, #87CEEB15 75%);
+    background-color: #ffffff;
+    background-size: 60px 60px;
+    background-position: 0 0, 30px 30px;
   }
 
   h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+    font-family: 'Frank Ruhl Libre', serif;
+    text-shadow: 1.5px 1.5px 2px rgba(0, 0, 0, 0.15),
+                 3px 3px 4px rgba(135, 206, 235, 0.2);
+  }
+
+  h1 {
+    @apply text-4xl font-bold mb-6 animate-fade-in delay-100;
+    letter-spacing: -0.02em;
+  }
+
+  h2, h3, h4, h5, h6 {
     @apply font-bold text-[#8B4513];
   }
 
@@ -94,4 +111,48 @@
     @apply bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-6
            border border-[#B8860B]/20;
   }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.delay-100 {
+  animation-delay: 200ms;
+}
+
+.delay-200 {
+  animation-delay: 400ms;
+}
+
+.delay-300 {
+  animation-delay: 600ms;
+}
+
+section {
+  @apply animate-fade-in;
+}
+
+section:nth-child(1) {
+  animation-delay: 200ms;
+}
+
+section:nth-child(2) {
+  animation-delay: 400ms;
+}
+
+section:nth-child(3) {
+  animation-delay: 600ms;
 }

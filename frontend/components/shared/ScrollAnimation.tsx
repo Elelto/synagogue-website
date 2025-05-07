@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 interface ScrollAnimationProps {
   children: React.ReactNode;
@@ -18,7 +18,27 @@ export function ScrollAnimation({
   className = '' 
 }: ScrollAnimationProps) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [isScrollingDown, setIsScrollingDown] = useState(true);
+  const [hasBeenVisible, setHasBeenVisible] = useState(false);
+  const isInView = useInView(ref, { margin: "-100px" });
+
+  useEffect(() => {
+    if (isInView) {
+      setHasBeenVisible(true);
+    }
+  }, [isInView]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setIsScrollingDown(currentScrollY > lastScrollY);
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   const directions = {
     up: { y: 100, x: 0, opacity: 0 },
@@ -27,15 +47,17 @@ export function ScrollAnimation({
     right: { x: -100, y: 0, opacity: 0 }
   };
 
+  const shouldAnimate = isInView || hasBeenVisible;
+
   return (
     <motion.div
       ref={ref}
       className={className}
       initial={directions[direction]}
       animate={{
-        x: isInView ? 0 : directions[direction].x,
-        y: isInView ? 0 : directions[direction].y,
-        opacity: isInView ? 1 : 0,
+        x: shouldAnimate ? 0 : directions[direction].x,
+        y: shouldAnimate ? 0 : directions[direction].y,
+        opacity: shouldAnimate ? 1 : 0,
       }}
       transition={{
         duration: 0.8,

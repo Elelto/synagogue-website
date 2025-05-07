@@ -108,7 +108,7 @@ export function Gallery() {
 
   if (error) {
     return (
-      <div className="text-center text-red-600 p-4">
+      <div className="text-center text-red-600 p-4 rounded-md bg-white/90 backdrop-blur-sm shadow-lg border-2 border-[#1E6B87]">
         {error}
       </div>
     );
@@ -121,10 +121,10 @@ export function Gallery() {
       {/* Category Filter */}
       <div className="flex flex-wrap justify-center gap-4 mb-8">
         <button
-          className={`px-4 py-2 rounded-full transition-colors duration-300 ${
+          className={`px-4 py-2 rounded-md border-2 transition-colors duration-300 ${
             !selectedCategory
-              ? 'bg-[#C6A45C] text-white'
-              : 'bg-white text-[#1E6B87] border border-[#1E6B87] hover:bg-[#E6EEF2]'
+              ? 'bg-gradient-to-b from-[#F3DF8A] via-[#E5B94E] to-[#D1A73C] text-white border-[#1E6B87]'
+              : 'bg-white text-[#1E6B87] border-[#1E6B87] hover:bg-[#E6EEF2]'
           }`}
           onClick={() => setSelectedCategory(null)}
         >
@@ -133,10 +133,10 @@ export function Gallery() {
         {categories.map((category) => (
           <button
             key={category.id}
-            className={`px-4 py-2 rounded-full transition-colors duration-300 ${
+            className={`px-4 py-2 rounded-md border-2 transition-colors duration-300 ${
               selectedCategory === category.id
-                ? 'bg-[#C6A45C] text-white'
-                : 'bg-white text-[#1E6B87] border border-[#1E6B87] hover:bg-[#E6EEF2]'
+                ? 'bg-gradient-to-b from-[#F3DF8A] via-[#E5B94E] to-[#D1A73C] text-white border-[#1E6B87]'
+                : 'bg-white text-[#1E6B87] border-[#1E6B87] hover:bg-[#E6EEF2]'
             }`}
             onClick={() => setSelectedCategory(category.id)}
           >
@@ -150,7 +150,7 @@ export function Gallery() {
         {filteredImages.map((image) => (
           <div
             key={image.id}
-            className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md transform transition duration-300 hover:scale-105"
+            className="relative group cursor-pointer overflow-hidden rounded-md shadow-lg transform transition duration-300 hover:scale-105 border-2 border-[#1E6B87]"
             onClick={() => {
               setSelectedImage(image);
               setZoomLevel(1);
@@ -204,42 +204,58 @@ export function Gallery() {
               </button>
             )}
 
-            {/* Zoom Controls */}
-            <div className="absolute top-4 right-4 flex gap-2">
-              <button
-                className="bg-[#C6A45C] text-white p-2 rounded hover:bg-[#D4AF37]"
-                onClick={handleZoomIn}
-              >
-                +
-              </button>
-              <button
-                className="bg-[#C6A45C] text-white p-2 rounded hover:bg-[#D4AF37]"
-                onClick={handleZoomOut}
-              >
-                -
-              </button>
-            </div>
+            {/* Image Container */}
+            <div
+              className="relative bg-white rounded-md shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="relative aspect-[4/3]">
+                <Image
+                  src={selectedImage.url}
+                  alt={selectedImage.title}
+                  fill
+                  style={{
+                    objectFit: 'contain',
+                    transform: `scale(${zoomLevel})`,
+                    transition: 'transform 0.3s ease-in-out'
+                  }}
+                  sizes="(max-width: 1200px) 100vw, 1200px"
+                  priority
+                />
+              </div>
 
-            {/* Image */}
-            <div className="relative aspect-[4/3] overflow-hidden">
-              <Image
-                src={selectedImage.url}
-                alt={selectedImage.title}
-                fill
-                style={{
-                  objectFit: 'contain',
-                  transform: `scale(${zoomLevel})`,
-                  transition: 'transform 0.3s ease'
+              {/* Image Info */}
+              <div className="absolute bottom-0 left-0 right-0 bg-[#1E6B87] bg-opacity-75 text-white p-4">
+                <h3 className="text-xl font-semibold mb-1">{selectedImage.title}</h3>
+                <p className="text-[#C6A45C]">{selectedImage.description}</p>
+              </div>
+
+              {/* Zoom Controls */}
+              <div className="absolute top-4 left-4 flex gap-2">
+                <button
+                  className="bg-[#1E6B87] text-white rounded-md p-2 hover:bg-[#1E6B87]/80"
+                  onClick={handleZoomIn}
+                >
+                  +
+                </button>
+                <button
+                  className="bg-[#1E6B87] text-white rounded-md p-2 hover:bg-[#1E6B87]/80"
+                  onClick={handleZoomOut}
+                >
+                  -
+                </button>
+              </div>
+
+              {/* Close Button */}
+              <button
+                className="absolute top-4 right-4 text-[#C6A45C] hover:text-white"
+                onClick={() => {
+                  setSelectedImage(null);
+                  setZoomLevel(1);
                 }}
-                sizes="100vw"
-                priority
-              />
-            </div>
-
-            {/* Caption */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center">
-              <h3 className="text-white text-xl font-semibold">{selectedImage.title}</h3>
-              <p className="text-[#C6A45C] mt-2">{selectedImage.description}</p>
+              >
+                ✕
+              </button>
             </div>
           </div>
         </div>

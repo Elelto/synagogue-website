@@ -20,9 +20,7 @@ dotenv.config();
 
 const app = express();
 const prisma = new PrismaClient();
-const port = process.env.NODE_ENV === 'development' 
-  ? 3001 
-  : Number(process.env.PORT) || 3001;
+const port = Number(process.env.PORT) || 3001;
 
 // Add request logging in development
 if (process.env.NODE_ENV === 'development') {
@@ -105,9 +103,8 @@ app.use((req, res) => {
   })
 })
 
-const server = app.listen(port, '0.0.0.0', () => {
-  console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${port}`);
-  console.log(`Health check available at http://localhost:${port}/health`);
+let server = app.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running on port ${port}`);
 });
 
 // Graceful shutdown
@@ -116,6 +113,7 @@ process.on('SIGTERM', () => {
   server.close(() => {
     console.log('HTTP server closed')
     prisma.$disconnect()
+    process.exit(0)
   })
 })
 
